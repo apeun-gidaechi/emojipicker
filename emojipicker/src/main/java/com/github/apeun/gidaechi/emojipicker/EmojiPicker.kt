@@ -10,10 +10,12 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Icon
@@ -74,13 +76,9 @@ fun EmojiPicker(
                     emojiRemoteState = Result.Success(
                         it
                             .filter {
-                                val value = isEmojiCharacterRenderable(
+                                isEmojiCharacterRenderable(
                                     emojiCharacter = it.character,
                                 )
-
-                                Log.d("TAG", "${EmojiCompat.get().loadState == EmojiCompat.LOAD_STATE_SUCCEEDED}EmojiPickerUi: ${it.character} $value")
-
-                                value
                             }
                             .toImmutableList()
                     )
@@ -122,6 +120,7 @@ private fun EmojiPickerUi(
     Scaffold(
         modifier = modifier
             .navigationBarsPadding(),
+        containerColor = Color(0xFFF2F2F7),
         bottomBar = {
             Column {
                 Box(
@@ -157,7 +156,7 @@ private fun EmojiPickerUi(
                                 categoryIndexList.size > 0 &&
                                 nowItem <= firstVisibleIndex &&
                                 firstVisibleIndex < nextItem
-                            ) Color.Blue else Color.Gray
+                            ) Color(0xFF3478F6) else Color.Gray
                         )
                     }
                 }
@@ -187,10 +186,13 @@ private fun EmojiPickerUi(
 
                 BoxWithConstraints {
                     if (emojiWidth == null) {
-                        Text(text = "이모지가 없어요")
+                        Text(
+                            text = "이모지가 없어요",
+                            color = Color(0xFF8E8E92)
+                        )
                     } else {
                         val (columnCount, itemPadding) = getColumnData(
-                            maxColumnWidth = maxWidth,
+                            maxColumnWidth = maxWidth - 12.dp,
                             emojiWidth = emojiWidth,
                         )
 
@@ -211,18 +213,35 @@ private fun EmojiPickerUi(
                         LazyColumn(
                             state = lazyListState,
                             modifier = Modifier
-                                .padding(it)
+                                .padding(it),
+                            horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             emojiGroups.mapIndexed { index, (group, emojis)  ->
                                 stickyHeader {
-                                    Text(text = group)
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .background(Color(0xFFF2F2F7))
+                                    ) {
+                                        Text(
+                                            modifier = Modifier
+                                                .padding(vertical = 8.dp)
+                                                .padding(start = 6.dp),
+                                            text = group,
+                                            color = Color(0xFF8E8E92)
+                                        )
+                                    }
                                 }
                                 emojis.chunked(
                                     size = columnCount
                                 ).map { chunk ->
                                     item(key = chunk) {
                                         Row(
-                                            modifier = Modifier.fillMaxWidth(),
+                                            modifier = Modifier
+                                                .padding(
+                                                    horizontal = 6.dp
+                                                )
+                                                .fillMaxWidth(),
                                             horizontalArrangement = Arrangement.spacedBy(16.dp),
                                             verticalAlignment = Alignment.CenterVertically
                                         ) {

@@ -35,7 +35,6 @@ internal fun EmojiUi(
         contentAlignment = Alignment.Center
     ) {
         Text(
-
             text = emojiCharacter,
             style = TextStyle(
                 fontSize = defaultEmojiFontSize,
