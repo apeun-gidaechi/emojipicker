@@ -1,19 +1,27 @@
 package com.github.apeun.gidaechi.emojipicker
 
 import android.util.Log
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -21,21 +29,25 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.max
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.util.fastForEach
+import androidx.compose.ui.util.fastForEachIndexed
 import androidx.compose.ui.util.fastMap
-import androidx.compose.ui.util.fastMapIndexed
 import androidx.emoji2.text.EmojiCompat
 import com.github.apeun.gidaechi.emojipicker.core.EmojiLoader
 import com.github.apeun.gidaechi.emojipicker.core.model.EmojiModel
 import com.github.apeun.gidaechi.emojipicker.core.model.Result
 import com.github.apeun.gidaechi.emojipicker.core.utiles.isEmojiCharacterRenderable
 import com.github.apeun.gidaechi.emojipicker.core.utiles.rememberTextWidth
+import com.github.apeun.gidaechi.emojipicker.core.utiles.toDp
 import com.github.apeun.gidaechi.emojipicker.ui.EmojiUi
 import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
@@ -82,17 +94,84 @@ fun EmojiPicker(
     )
 }
 
-@OptIn(ExperimentalLayoutApi::class)
+@OptIn(ExperimentalLayoutApi::class, ExperimentalFoundationApi::class)
 @Composable
 private fun EmojiPickerUi(
     modifier: Modifier = Modifier,
     emojiRemoteState: Result<ImmutableList<EmojiModel>>
 ) {
+
+    val lazyListState = rememberLazyListState()
+    val density = LocalDensity.current
+    val emojiList: ImmutableList<Int> = persistentListOf(
+        R.drawable.ic_smile_eye,
+        R.drawable.ic_person,
+        R.drawable.ic_dog_face,
+        R.drawable.ic_hamburger,
+        R.drawable.ic_hotel,
+        R.drawable.ic_soccer_ball,
+        R.drawable.ic_light_bulb,
+        R.drawable.ic_black_heart,
+        R.drawable.ic_flag
+    )
+
+    val coroutineScope = rememberCoroutineScope()
+    var categoryIndexList: ImmutableList<Int> by remember { mutableStateOf(persistentListOf()) }
+    val firstVisibleIndex by remember { derivedStateOf { lazyListState.firstVisibleItemIndex } }
+
+        LaunchedEffect(categoryIndexList) {
+        Log.d("TAG", "EmojiPickerUi: $categoryIndexList")
+    }
+
+    LaunchedEffect(firstVisibleIndex) {
+        Log.d("TAG", "EmojiPickerUi: $firstVisibleIndex")
+    }
+
     Scaffold(
         modifier = modifier
             .navigationBarsPadding(),
         bottomBar = {
+            Column {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(1.dp)
+                        .background(
+                            color = Color.Gray
+                        )
+                )
+                Row {
+                    emojiList.fastForEachIndexed { index, iconId ->
 
+                        val formerItem = categoryIndexList.getOrNull(index-1) ?: Int.MIN_VALUE
+                        val nowItem = categoryIndexList.getOrNull(index) ?: 0
+                        val nextItem = categoryIndexList.getOrNull(index+1) ?: Int.MAX_VALUE
+                        Icon(
+                            modifier = Modifier
+                                .padding(vertical = 8.dp)
+                                .weight(1f)
+                                .height(density.toDp(defaultEmojiFontSize))
+                                .clickable {
+                                    coroutineScope.launch {
+                                        lazyListState.animateScrollToItem(nowItem)
+                                    }
+                                },
+                            painter = painterResource(id = iconId),
+                            contentDescription = null,
+                            tint = if (
+                                nowItem <= firstVisibleIndex &&
+                                firstVisibleIndex < nextItem
+                                // 현재 타겟인지
+//                                nowItem <= firstVisibleIndex &&
+//                                // 내 다음 index 아이템이 활성화인지
+//                                nextItem > (categoryIndexList.getOrNull(index) ?: 0) &&
+//                                // 내 이전 index 아이템이 활성화인지
+//                                firstVisibleIndex !in formerItem..<nowItem
+                            ) Color.Blue else Color.Gray
+                        )
+                    }
+                }
+            }
         }
     ) {
         when (emojiRemoteState) {
@@ -115,6 +194,7 @@ private fun EmojiPickerUi(
                     text = emojiGroups.firstOrNull()?.second?.firstOrNull()?.character?: "",
                     fontSize = defaultEmojiFontSize,
                 )
+
                 BoxWithConstraints {
                     if (emojiWidth == null) {
                         Text(text = "이모지가 없어요")
@@ -123,12 +203,28 @@ private fun EmojiPickerUi(
                             maxColumnWidth = maxWidth,
                             emojiWidth = emojiWidth,
                         )
+
+                        LaunchedEffect(emojiGroups) {
+                            // 각 그룹의 첫 번째 이모지 인덱스를 계산
+                            var currentIndex = 0
+                            val newHeaderKey = emojiGroups.mapIndexed { index, (_, emojis) ->
+                                val headerIndex = currentIndex
+                                currentIndex += emojis.size / columnCount + // 다음 그룹의 시작 인덱스를 위해 누적
+                                        if (emojis.size % columnCount != 0) 1 else 0//
+                                currentIndex++
+                                headerIndex
+                            }.toImmutableList()
+
+                            categoryIndexList = newHeaderKey
+                        }
+
                         LazyColumn(
+                            state = lazyListState,
                             modifier = Modifier
                                 .padding(it)
                         ) {
                             emojiGroups.mapIndexed { index, (group, emojis)  ->
-                                item {
+                                stickyHeader {
                                     Text(text = group)
                                 }
                                 emojis.chunked(

@@ -15,7 +15,6 @@ import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import com.github.apeun.gidaechi.emojipicker.defaultEmojiFontSize
-import com.github.apeun.gidaechi.emojipicker.defaultEmojiSize
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
