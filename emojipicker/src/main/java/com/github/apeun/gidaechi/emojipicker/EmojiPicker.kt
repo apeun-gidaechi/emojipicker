@@ -119,14 +119,6 @@ private fun EmojiPickerUi(
     var categoryIndexList: ImmutableList<Int> by remember { mutableStateOf(persistentListOf()) }
     val firstVisibleIndex by remember { derivedStateOf { lazyListState.firstVisibleItemIndex } }
 
-        LaunchedEffect(categoryIndexList) {
-        Log.d("TAG", "EmojiPickerUi: $categoryIndexList")
-    }
-
-    LaunchedEffect(firstVisibleIndex) {
-        Log.d("TAG", "EmojiPickerUi: $firstVisibleIndex")
-    }
-
     Scaffold(
         modifier = modifier
             .navigationBarsPadding(),
@@ -143,15 +135,18 @@ private fun EmojiPickerUi(
                 Row {
                     emojiList.fastForEachIndexed { index, iconId ->
 
-                        val formerItem = categoryIndexList.getOrNull(index-1) ?: Int.MIN_VALUE
                         val nowItem = categoryIndexList.getOrNull(index) ?: 0
                         val nextItem = categoryIndexList.getOrNull(index+1) ?: Int.MAX_VALUE
+
                         Icon(
                             modifier = Modifier
                                 .padding(vertical = 8.dp)
                                 .weight(1f)
                                 .height(density.toDp(defaultEmojiFontSize))
                                 .clickable {
+                                    if (categoryIndexList.size == 0) {
+                                        return@clickable
+                                    }
                                     coroutineScope.launch {
                                         lazyListState.animateScrollToItem(nowItem)
                                     }
@@ -159,14 +154,9 @@ private fun EmojiPickerUi(
                             painter = painterResource(id = iconId),
                             contentDescription = null,
                             tint = if (
+                                categoryIndexList.size > 0 &&
                                 nowItem <= firstVisibleIndex &&
                                 firstVisibleIndex < nextItem
-                                // 현재 타겟인지
-//                                nowItem <= firstVisibleIndex &&
-//                                // 내 다음 index 아이템이 활성화인지
-//                                nextItem > (categoryIndexList.getOrNull(index) ?: 0) &&
-//                                // 내 이전 index 아이템이 활성화인지
-//                                firstVisibleIndex !in formerItem..<nowItem
                             ) Color.Blue else Color.Gray
                         )
                     }
@@ -229,14 +219,14 @@ private fun EmojiPickerUi(
                                 }
                                 emojis.chunked(
                                     size = columnCount
-                                ).map {
-                                    item {
+                                ).map { chunk ->
+                                    item(key = chunk) {
                                         Row(
                                             modifier = Modifier.fillMaxWidth(),
                                             horizontalArrangement = Arrangement.spacedBy(16.dp),
                                             verticalAlignment = Alignment.CenterVertically
                                         ) {
-                                            it.fastMap {
+                                            chunk.fastMap {
                                                 EmojiUi(
                                                     emojiCharacter = it.character,
                                                     onClick = {}

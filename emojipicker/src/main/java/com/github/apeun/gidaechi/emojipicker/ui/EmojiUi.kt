@@ -40,7 +40,7 @@ internal fun EmojiUi(
             style = TextStyle(
                 fontSize = defaultEmojiFontSize,
                 platformStyle = PlatformTextStyle(
-                    emojiSupportMatch = EmojiSupportMatch.None
+                    emojiSupportMatch = EmojiSupportMatch.Default
                 ),
                 textAlign = TextAlign.Center,
             ),
