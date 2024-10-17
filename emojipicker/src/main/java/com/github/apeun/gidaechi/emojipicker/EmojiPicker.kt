@@ -58,7 +58,9 @@ import kotlin.math.floor
 
 @Composable
 fun EmojiPicker(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onClick: (emoji: String) -> Unit,
+    onLongClick: ((emoji: String) -> Unit)? = null,
 ) {
 
     var emojiRemoteState: Result<ImmutableList<EmojiModel>> by remember { mutableStateOf(Result.Loading) }
@@ -88,7 +90,9 @@ fun EmojiPicker(
 
     EmojiPickerUi(
         modifier = modifier,
-        emojiRemoteState = emojiRemoteState
+        emojiRemoteState = emojiRemoteState,
+        onClick = onClick,
+        onLongClick = onLongClick,
     )
 }
 
@@ -96,7 +100,9 @@ fun EmojiPicker(
 @Composable
 private fun EmojiPickerUi(
     modifier: Modifier = Modifier,
-    emojiRemoteState: Result<ImmutableList<EmojiModel>>
+    emojiRemoteState: Result<ImmutableList<EmojiModel>>,
+    onClick: (emoji: String) -> Unit,
+    onLongClick: ((emoji: String) -> Unit)?,
 ) {
 
     val lazyListState = rememberLazyListState()
@@ -248,7 +254,14 @@ private fun EmojiPickerUi(
                                             chunk.fastMap {
                                                 EmojiUi(
                                                     emojiCharacter = it.character,
-                                                    onClick = {}
+                                                    onClick = {
+                                                        onClick(it.character)
+                                                    },
+                                                    onLongClick = {
+                                                        if (onLongClick != null) {
+                                                            onLongClick(it.character)
+                                                        }
+                                                    }
                                                 )
                                             }
                                         }

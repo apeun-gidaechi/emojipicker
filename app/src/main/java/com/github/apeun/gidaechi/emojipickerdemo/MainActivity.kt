@@ -26,6 +26,7 @@ class MainActivity: ComponentActivity() {
 
         setContent {
             var isShowEmoji by remember { mutableStateOf(false) }
+            var selectEmoji by remember { mutableStateOf("\uD83C\uDDEC") }
             if (!isShowEmoji) {
                 Text(
                     modifier = Modifier
@@ -33,7 +34,7 @@ class MainActivity: ComponentActivity() {
                         .clickable {
                             isShowEmoji = true
                         },
-                    text = "\uD83C\uDDEC",
+                    text = selectEmoji,
                     style = TextStyle(
                         fontSize = 40.sp,
                         platformStyle = PlatformTextStyle(
@@ -43,7 +44,12 @@ class MainActivity: ComponentActivity() {
                     ),
                 )
             } else {
-                EmojiPicker()
+                EmojiPicker(
+                    onClick = {
+                        selectEmoji = it
+                        isShowEmoji = false
+                    }
+                )
             }
         }
     }
