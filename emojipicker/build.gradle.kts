@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.jetbrains.kotlin.android)
     alias(libs.plugins.jetbrains.kotlin.serialization)
+    id("maven-publish")
 }
 
 android {
@@ -43,6 +44,24 @@ android {
 
     buildFeatures {
         compose = true
+    }
+}
+
+afterEvaluate {
+    publishing {
+        publications {
+            register<MavenPublication>("release") {
+                from(components["release"])
+                groupId = "com.github.apeun-gidaechi"
+                artifactId = "emojipicker"
+                version = "1.0.0"
+
+                pom {
+                    name.set("Emoji Picker")
+                    description.set("This compose emoji picker.\nThis library is a modified library in [compose-emoji-picker](https://github.com/Abhimanyu14/compose-emoji-picker).")
+                }
+            }
+        }
     }
 }
 
