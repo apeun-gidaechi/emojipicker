@@ -59,6 +59,7 @@ import kotlin.math.floor
 @Composable
 fun EmojiPicker(
     modifier: Modifier = Modifier,
+    backgroundColor: Color = Color(0xFFF2F2F7),
     onClick: (emoji: String) -> Unit,
     onLongClick: ((emoji: String) -> Unit)? = null,
 ) {
@@ -91,6 +92,7 @@ fun EmojiPicker(
     EmojiPickerUi(
         modifier = modifier,
         emojiRemoteState = emojiRemoteState,
+        backgroundColor = backgroundColor,
         onClick = onClick,
         onLongClick = onLongClick,
     )
@@ -101,6 +103,7 @@ fun EmojiPicker(
 private fun EmojiPickerUi(
     modifier: Modifier = Modifier,
     emojiRemoteState: Result<ImmutableList<EmojiModel>>,
+    backgroundColor: Color,
     onClick: (emoji: String) -> Unit,
     onLongClick: ((emoji: String) -> Unit)?,
 ) {
@@ -126,7 +129,7 @@ private fun EmojiPickerUi(
     Scaffold(
         modifier = modifier
             .navigationBarsPadding(),
-        containerColor = Color(0xFFF2F2F7),
+        containerColor = backgroundColor,
         bottomBar = {
             Column {
                 Box(
